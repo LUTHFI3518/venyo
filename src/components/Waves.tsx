@@ -93,6 +93,16 @@ class NoiseGenerator {
 }
 // --- End Noise Generation ---
 
+// --- Define types for wave points and lines ---
+interface WavePoint {
+  x: number;
+  y: number;
+  wave: { x: number; y: number };
+  cursor: { x: number; y: number; vx: number; vy: number };
+}
+type WaveLine = WavePoint[];
+// --- End Fix ---
+
 // --- Component Props Interface ---
 interface WavesProps {
   backgroundColor?: string;
@@ -129,7 +139,7 @@ const Waves = ({
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const boundingRef = useRef({ width: 0, height: 0, left: 0, top: 0 });
   const noiseRef = useRef(new NoiseGenerator(Math.random()));
-  const linesRef = useRef<any[]>([]);
+  const linesRef = useRef<WaveLine[]>([]);
   const mouseRef = useRef({
     x: -10,
     y: 0,
@@ -184,11 +194,27 @@ const Waves = ({
     ctxRef.current = canvas.getContext('2d');
     if (!ctxRef.current) return;
 
+    // --- START OF FIX: Hi-Res Canvas Scaling ---
     function setSize() {
+      // Add null checks for all required elements
+      if (!container || !canvas || !ctxRef.current) return;
+
+      // Adjust for device pixel ratio for high-res screens
+      const dpr = window.devicePixelRatio || 1;
       boundingRef.current = container.getBoundingClientRect();
-      canvas.width = boundingRef.current.width;
-      canvas.height = boundingRef.current.height;
+
+      // Set the internal drawing buffer size (higher res)
+      canvas.width = boundingRef.current.width * dpr;
+      canvas.height = boundingRef.current.height * dpr;
+
+      // Set the display size (CSS pixels)
+      canvas.style.width = `${boundingRef.current.width}px`;
+      canvas.style.height = `${boundingRef.current.height}px`;
+
+      // Scale the drawing context so drawing commands use CSS pixels
+      ctxRef.current.scale(dpr, dpr);
     }
+    // --- END OF FIX ---
 
     function setLines() {
       const { width, height } = boundingRef.current;
@@ -201,7 +227,7 @@ const Waves = ({
       const xStart = (width - xGap * totalLines) / 2;
       const yStart = (height - yGap * totalPoints) / 2;
       for (let i = 0; i <= totalLines; i++) {
-        const pts = [];
+        const pts: WavePoint[] = [];
         for (let j = 0; j <= totalPoints; j++) {
           pts.push({
             x: xStart + xGap * i,
@@ -220,7 +246,7 @@ const Waves = ({
         noise = noiseRef.current;
       const { waveSpeedX, waveSpeedY, waveAmpX, waveAmpY, friction, tension, maxCursorMove } = configRef.current;
       lines.forEach(pts => {
-        pts.forEach((p: any) => {
+        pts.forEach(p => {
           const move = noise.perlin2((p.x + time * waveSpeedX) * 0.002, (p.y + time * waveSpeedY) * 0.0015) * 12;
           p.wave.x = Math.cos(move) * waveAmpX;
           p.wave.y = Math.sin(move) * waveAmpY;
@@ -248,18 +274,23 @@ const Waves = ({
       });
     }
 
-    function moved(point: any, withCursor = true) {
+    function moved(point: WavePoint, withCursor = true) {
       const x = point.x + point.wave.x + (withCursor ? point.cursor.x : 0);
       const y = point.y + point.wave.y + (withCursor ? point.cursor.y : 0);
       return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
     }
 
     function drawLines() {
-      const { width, height } = boundingRef.current;
       const ctx = ctxRef.current;
-      if (!ctx) return;
+      // Add null check for canvas as well
+      if (!ctx || !canvas) return;
       
-      ctx.clearRect(0, 0, width, height);
+      // --- FIX: Clear the *entire scaled buffer* ---
+      // We use canvas.width and canvas.height (the scaled pixel size)
+      // not boundingRef.current.width (the CSS size)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // --- END FIX ---
+      
       ctx.beginPath();
       ctx.strokeStyle = configRef.current.lineColor;
       linesRef.current.forEach(points => {
@@ -290,10 +321,6 @@ const Waves = ({
       mouse.ly = mouse.y;
       mouse.a = Math.atan2(dy, dx);
       
-      // Removed the mouse follower dot logic
-      // container.style.setProperty('--x', `${mouse.sx}px`);
-      // container.style.setProperty('--y', `${mouse.sy}px`);
-
       movePoints(t);
       drawLines();
       frameIdRef.current = requestAnimationFrame(tick);
@@ -350,11 +377,9 @@ const Waves = ({
       }}
       className={`absolute top-0 left-0 w-full h-full overflow-hidden ${className}`}
     >
-      {/* Removed the mouse follower dot */}
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );
 };
 
 export default Waves;
-

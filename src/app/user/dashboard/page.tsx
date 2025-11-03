@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion'; // --- FIX: Imported 'Variants' type
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,8 @@ import { format } from 'date-fns';
 
 // --- Animation Variants ---
 // For sections scrolling into view
-const sectionVariants = {
+// --- FIX: Added 'Variants' type to fix TS errors
+const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
@@ -24,7 +25,8 @@ const sectionVariants = {
 };
 
 // For staggering children (like the venue card grid)
-const containerVariants = {
+// --- FIX: Added 'Variants' type to fix TS errors
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -126,7 +128,8 @@ export default function UserDashboard() {
         const hadExpiredDates = Object.keys(originalAvailability).length !== Object.keys(cleanedAvailability).length;
         
         let status = venue.status || 'available';
-        if (Object.keys(cleanedAvailability).length === 0 && (status === 'booked' || status === 'Booked')) {
+        // --- FIX: Removed impossible 'Booked' check. Type is lowercase 'booked'.
+        if (Object.keys(cleanedAvailability).length === 0 && status === 'booked') {
           status = 'available';
         }
         
@@ -404,4 +407,3 @@ export default function UserDashboard() {
     </div>
   );
 }
-

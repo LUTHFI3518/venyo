@@ -91,15 +91,16 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       
+      {/* --- FIX: Removed the 'lineColor' prop --- */}
       <Waves
         className="absolute inset-0 z-0"
         backgroundColor={theme === 'light' ? '#ffffff' : '#000000'}
-        lineColor={theme === 'light' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.2)'}
         waveAmpX={60}
         waveAmpY={30}
         xGap={20}
         yGap={20}
       />
+      {/* --- End Fix --- */}
       
       <div className="relative z-10 w-full max-w-md">
         <motion.div
@@ -323,7 +324,7 @@ export default function AuthPage() {
               disabled={loading}
               className={`w-full py-3 px-4 rounded-lg border backdrop-blur-sm font-medium flex items-center justify-center space-x-2 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                 theme === 'light'
-                  ? 'bg-gray-200/50 border-gray-300/50 text-gray-700 hover:bg-gray-300/70'
+                  ? 'bg-gray-200/50 border-gray-300/50 text-gray-700 hover:bg-gray-300/7I 70'
                   : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700'
               }`}
             >
@@ -360,4 +361,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
