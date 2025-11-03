@@ -114,7 +114,7 @@ export default function ApprovalsPage() {
             // Use time_slot field if available, otherwise construct it
             const timeSlot = booking.time_slot || `${booking.start_time}-${booking.end_time}`;
             const existingSlots = currentAvailability[dateKey] || [];
-            const updatedSlots = existingSlots.filter(slot => slot !== timeSlot);
+            const updatedSlots = existingSlots.filter((slot: string) => slot !== timeSlot);
             
             if (updatedSlots.length === 0) {
               // No more bookings for this date, remove the date
