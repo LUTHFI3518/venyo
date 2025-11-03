@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
-import { collection, query, onSnapshot, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore'; // Note: 'doc' is imported here
 import { db } from '@/lib/firebase';
 import { useNotification } from '@/hooks/useNotification';
 import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiX, FiUpload } from 'react-icons/fi';
@@ -67,8 +67,9 @@ export default function VenuesPage() {
       const venuesData: Venue[] = [];
       const today = format(new Date(), 'yyyy-MM-dd');
       
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      // --- FIX: Renamed 'doc' variable to 'venueDoc' to avoid conflict with imported 'doc' function
+      snapshot.forEach((venueDoc) => {
+        const data = venueDoc.data(); // --- FIX: Changed from doc.data()
         const availability = data.availability || {};
         
         // Clean up expired dates from availability (past dates)
@@ -102,7 +103,8 @@ export default function VenuesPage() {
         const availabilityChanged = JSON.stringify(availability) !== JSON.stringify(cleanedAvailability);
         
         if (hadExpiredDates || statusChanged || availabilityChanged) {
-          console.log(`🔄 Updating venue ${data.name || doc.id}:`, {
+          // --- FIX: Changed from doc.id
+          console.log(`🔄 Updating venue ${data.name || venueDoc.id}:`, {
             oldStatus: data.status,
             newStatus: status,
             expiredDates: hadExpiredDates,
@@ -110,19 +112,21 @@ export default function VenuesPage() {
             newAvailabilityKeys: Object.keys(cleanedAvailability)
           });
           
-          updateDoc(doc(db, 'venues', doc.id), {
+          // --- FIX: Now 'doc' refers to the Firebase function, and 'venueDoc.id' is the variable
+          updateDoc(doc(db, 'venues', venueDoc.id), {
             status: status,
             availability: cleanedAvailability,
             updated_at: new Date().toISOString(),
           }).then(() => {
-            console.log(`✅ Successfully updated venue ${data.name || doc.id}`);
+            // --- FIX: Changed from doc.id
+            console.log(`✅ Successfully updated venue ${data.name || venueDoc.id}`);
           }).catch(err => {
             console.error('❌ Error updating venue status:', err);
           });
         }
         
         venuesData.push({ 
-        id: doc.id,
+          id: venueDoc.id, // --- FIX: Changed from doc.id
           name: data.name || '',
           capacity: data.capacity || 0,
           description: data.description || '',
@@ -199,6 +203,7 @@ export default function VenuesPage() {
   const handleDeleteVenue = async (venueId: string) => {
     if (confirm('Are you sure you want to delete this venue?')) {
       try {
+        // This line correctly uses the imported 'doc' function and was not a problem
         await deleteDoc(doc(db, 'venues', venueId));
         showToast('Venue deleted successfully', 'success');
       } catch (error) {
@@ -235,6 +240,7 @@ export default function VenuesPage() {
       }
 
       if (editingVenue) {
+        // This line correctly uses the imported 'doc' function and was not a problem
         await updateDoc(doc(db, 'venues', editingVenue.id), {
           ...formData,
           image_url: imageUrl,
@@ -352,6 +358,7 @@ export default function VenuesPage() {
                   
                   if (Object.keys(availability).length !== Object.keys(cleanedAvailability).length || newStatus !== venue.status) {
                     try {
+                      // This line correctly uses the imported 'doc' function and was not a problem
                       await updateDoc(doc(db, 'venues', venue.id), {
                         availability: cleanedAvailability,
                         status: newStatus,
@@ -444,7 +451,7 @@ export default function VenuesPage() {
                     venue.status === 'available'
                       ? 'bg-green-500/20 text-green-600 dark:text-green-400'
                       : venue.status === 'booked'
-                      ? 'bg-red-500/20 text-red-600 dark:text-red-400'
+                      ? 'bg-red-500/2Examples0 text-red-600 dark:text-red-400'
                       : 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                   }`}>
                     {venue.status}
@@ -746,5 +753,3 @@ export default function VenuesPage() {
   );
 // --- End Fix ---
 }
-
-
