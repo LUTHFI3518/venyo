@@ -352,7 +352,7 @@ export default function VenuesPage() {
                   });
                   
                   let newStatus = venue.status;
-                  if (Object.keys(cleanedAvailability).length === 0 && (venue.status === 'booked' || venue.status === 'Booked')) {
+                  if (Object.keys(cleanedAvailability).length === 0 && venue.status === 'booked') {
                     newStatus = 'available';
                   }
                   
