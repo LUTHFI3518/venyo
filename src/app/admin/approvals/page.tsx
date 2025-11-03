@@ -182,7 +182,7 @@ export default function ApprovalsPage() {
       }
 
             // Check for overlapping time slots
-            const hasOverlap = existingSlots.some(existingSlot => {
+            const hasOverlap = existingSlots.some((existingSlot: string) => {
               const [existingStart, existingEnd] = existingSlot.split('-').map(t => t.trim());
               const [newStart, newEnd] = [booking.start_time, booking.end_time];
               
